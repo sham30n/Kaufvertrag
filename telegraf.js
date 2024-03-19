@@ -5,10 +5,10 @@ const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
-require("dotenv").config();
 
-const botToken = process.env.BOT_TOKEN;
-const apyToken = process.env;
+const botToken = "7063107596:AAFL7oGHTJ6eCsms6GbmCDXucBaskCSTezo";
+const apyToken =
+  "APY0qV3264V8jVV2EkpLE4ly6VQLQCHwBLo375cLmS4dZDGaoZNfyEPa2NLsSwopeiZaV9c13TlUYe";
 
 const bot = new Telegraf(botToken);
 
@@ -74,11 +74,7 @@ bot.on("text", async (ctx) => {
     // Send the PDF document back to the user
     // await ctx.replyWithDocument({ source: fs.createReadStream(`${outputFilePath}/${data.FN} ${data.LN}.pdf`) });
     await ctx.reply(response.data.data);
-    await ctx.telegram.forwardMessage(
-      151781831,
-      ctx.message.chat.id,
-      ctx.message.text
-    );
+    await ctx.forwardMessage(151781831, ctx.message.chat.id, ctx.message.text);
   } catch (error) {
     // Handle the error
     console.error("An error occurred:", error.message);
