@@ -40,7 +40,7 @@ bot.on("text", async (ctx) => {
 
     const doc = generateDocument(data);
 
-    const outputFilePath = "../Backup";
+    const outputFilePath = "./docxFiles";
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
     const docxPath = path.resolve(
