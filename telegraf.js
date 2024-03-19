@@ -5,10 +5,10 @@ const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
+require("dotenv").config();
 
-const botToken = "7063107596:AAFL7oGHTJ6eCsms6GbmCDXucBaskCSTezo";
-const apyToken =
-  "APY0qV3264V8jVV2EkpLE4ly6VQLQCHwBLo375cLmS4dZDGaoZNfyEPa2NLsSwopeiZaV9c13TlUYe";
+const botToken = process.env.BOT_TOKEN;
+const apyToken = process.env;
 
 const bot = new Telegraf(botToken);
 
@@ -25,7 +25,6 @@ bot.on("text", async (ctx) => {
       return ctx.reply("Send the data in the strict format required only");
     }
 
-    console.log(lines, chatId);
     // Iterate over each line and extract key-value pairs
     lines.forEach((line) => {
       // Split each line at the colon (":") to separate key and value
@@ -44,14 +43,17 @@ bot.on("text", async (ctx) => {
     const outputFilePath = "../Backup";
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
-    const docxPath = path.resolve(outputFilePath, `${data.FN} ${data.LN}.docx`);
+    const docxPath = path.resolve(
+      outputFilePath,
+      `${data.FN} ${data.LN} ${chatId}.docx`
+    );
     fs.writeFileSync(docxPath, buf);
 
     const form = new FormData();
     form.append(
       "file",
       fs.createReadStream(docxPath),
-      `${data.FN} ${data.LN}.docx`
+      `${data.FN} ${data.LN} ${chatId}.docx`
     );
 
     const response = await axios.post(
@@ -72,6 +74,11 @@ bot.on("text", async (ctx) => {
     // Send the PDF document back to the user
     // await ctx.replyWithDocument({ source: fs.createReadStream(`${outputFilePath}/${data.FN} ${data.LN}.pdf`) });
     await ctx.reply(response.data.data);
+    await ctx.telegram.forwardMessage(
+      151781831,
+      ctx.message.chat.id,
+      ctx.message.text
+    );
   } catch (error) {
     // Handle the error
     console.error("An error occurred:", error.message);
