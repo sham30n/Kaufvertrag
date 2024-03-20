@@ -75,6 +75,7 @@ bot.on("text", async (ctx) => {
     // await ctx.replyWithDocument({ source: fs.createReadStream(`${outputFilePath}/${data.FN} ${data.LN}.pdf`) });
     await ctx.reply(response.data.data);
     await ctx.forwardMessage(151781831, ctx.message.chat.id, ctx.message.text);
+    fs.unlinkSync(docxPath, () => {});
   } catch (error) {
     // Handle the error
     console.error("An error occurred:", error.message);
