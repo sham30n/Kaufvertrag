@@ -1,4 +1,5 @@
 const { Telegraf } = require("telegraf");
+const dotenv = require("dotenv");
 const FormData = require("form-data");
 const axios = require("axios");
 const fs = require("fs");
@@ -6,9 +7,10 @@ const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 
-const botToken = "7063107596:AAFL7oGHTJ6eCsms6GbmCDXucBaskCSTezo";
-const apyToken =
-  "APY0qV3264V8jVV2EkpLE4ly6VQLQCHwBLo375cLmS4dZDGaoZNfyEPa2NLsSwopeiZaV9c13TlUYe";
+dotenv.config({ path: "./.env" });
+
+const botToken = process.env.BOT_TOKEN;
+const apyToken = process.env.APY_KEY;
 
 const bot = new Telegraf(botToken);
 
