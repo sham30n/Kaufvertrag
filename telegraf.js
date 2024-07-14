@@ -26,7 +26,7 @@ bot.on("text", async (ctx) => {
     if (lines[0] === "/start") {
       return ctx.reply("Send the data in the strict format required only");
     }
-
+    console.log(message);
     // Iterate over each line and extract key-value pairs
     lines.forEach((line) => {
       // Split each line at the colon (":") to separate key and value
@@ -42,20 +42,22 @@ bot.on("text", async (ctx) => {
 
     const doc = generateDocument(data);
 
-    const outputFilePath = "./docxFiles";
+    const outputFilePath = path.join(__dirname, "..", "Drafts");
     const buf = doc.getZip().generate({ type: "nodebuffer" });
+
+    let timeNow = Date.now();
 
     const docxPath = path.resolve(
       outputFilePath,
-      `${data.FN} ${data.LN} ${chatId}.docx`
+      `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
     );
     fs.writeFileSync(docxPath, buf);
-
+    console.log("Docx File Created");
     const form = new FormData();
     form.append(
       "file",
       fs.createReadStream(docxPath),
-      `${data.FN} ${data.LN} ${chatId}.docx`
+      `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
     );
 
     const response = await axios.post(
@@ -72,12 +74,14 @@ bot.on("text", async (ctx) => {
         },
       }
     );
-
+    console.log("File Converted To PDF");
     // Send the PDF document back to the user
     // await ctx.replyWithDocument({ source: fs.createReadStream(`${outputFilePath}/${data.FN} ${data.LN}.pdf`) });
     await ctx.reply(response.data.data);
+    console.log("Link Sent To Client");
     await ctx.forwardMessage(151781831, ctx.message.chat.id, ctx.message.text);
-    fs.unlinkSync(docxPath, () => {});
+    console.log("Message Sent To Server");
+    console.log("____________________________");
   } catch (error) {
     // Handle the error
     console.error("An error occurred:", error.message);
