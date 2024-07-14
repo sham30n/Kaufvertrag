@@ -2,6 +2,7 @@ const { Telegraf } = require("telegraf");
 const dotenv = require("dotenv");
 const FormData = require("form-data");
 const axios = require("axios");
+const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
@@ -11,6 +12,12 @@ dotenv.config({ path: "./.env" });
 
 const botToken = process.env.BOT_TOKEN;
 const apyToken = process.env.APY_KEY;
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: "eu-north-1",
+});
 
 const bot = new Telegraf(botToken);
 
@@ -45,20 +52,37 @@ bot.on("text", async (ctx) => {
     const outputFilePath = path.join(__dirname, "..", "Drafts");
     const buf = doc.getZip().generate({ type: "nodebuffer" });
 
-    let timeNow = Date.now();
+    const fileName = `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`;
 
-    const docxPath = path.resolve(
-      outputFilePath,
-      `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
-    );
-    fs.writeFileSync(docxPath, buf);
-    console.log("Docx File Created");
+    // Step 1: Upload to S3
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: `drafts/${fileName}`,
+      Body: buf,
+      ContentType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    };
+
+    await s3.upload(params).promise();
+    console.log("Docx File Uploaded to S3");
+
     const form = new FormData();
-    form.append(
-      "file",
-      fs.createReadStream(docxPath),
-      `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
-    );
+    form.append("file", buf, fileName);
+
+    // let timeNow = Date.now();
+
+    // const docxPath = path.resolve(
+    //   outputFilePath,
+    //   `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
+    // );
+    // fs.writeFileSync(docxPath, buf);
+    // console.log("Docx File Created");
+    // const form = new FormData();
+    // form.append(
+    //   "file",
+    //   fs.createReadStream(docxPath),
+    //   `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
+    // );
 
     const response = await axios.post(
       "https://api.apyhub.com/convert/word-file/pdf-url",

@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1659.0",
     "axios": "^1.6.8",
     "docxtemplater": "^3.46.0",
     "dotenv": "^16.4.5",
