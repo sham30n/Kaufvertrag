@@ -2,7 +2,6 @@ const { Telegraf } = require("telegraf");
 const dotenv = require("dotenv");
 const FormData = require("form-data");
 const axios = require("axios");
-const AWS = require("aws-sdk");
 const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
@@ -12,12 +11,6 @@ dotenv.config({ path: "./.env" });
 
 const botToken = process.env.BOT_TOKEN;
 const apyToken = process.env.APY_KEY;
-
-AWS.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: "eu-north-1",
-});
 
 const bot = new Telegraf(botToken);
 
