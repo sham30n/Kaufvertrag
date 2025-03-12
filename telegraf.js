@@ -1,16 +1,15 @@
 const { Telegraf } = require("telegraf");
-const dotenv = require("dotenv");
-const FormData = require("form-data");
 const axios = require("axios");
+const FormData = require("form-data");
 const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 
-dotenv.config({ path: "./.env" });
-
-const botToken = process.env.BOT_TOKEN;
-const apyToken = process.env.APY_KEY;
+const botToken = "7063107596:AAFL7oGHTJ6eCsms6GbmCDXucBaskCSTezo";
+const apyToken =
+  "APY0CDAeZvnZmg1CB9XtkCE7FSzMDmuRoK8ExKbjSTkjeE23gEvFJ1NozonsSmTccmqH";
+const apiUrl = "https://api.apyhub.com/convert/word-file/pdf-url";
 
 const bot = new Telegraf(botToken);
 
@@ -18,91 +17,66 @@ bot.on("text", async (ctx) => {
   try {
     const chatId = ctx.chat.id;
     const message = ctx.message.text;
-    // Split the message into lines
-    const lines = message.split("\n");
 
-    // Initialize an empty object to store key-value pairs
+    const lines = message.split("\n");
     const data = {};
+
     if (lines[0] === "/start") {
       return ctx.reply("Send the data in the strict format required only");
     }
-    console.log(message);
-    // Iterate over each line and extract key-value pairs
-    lines.forEach((line) => {
-      // Split each line at the colon (":") to separate key and value
-      const [key, value] = line.split(":");
 
-      // Remove leading and trailing whitespace from the key and value
+    console.log(message);
+
+    lines.forEach((line) => {
+      const [key, value] = line.split(":");
       const cleanedKey = key.trim();
       const cleanedValue = value.trim();
-
-      // Add the key-value pair to the data object
       data[cleanedKey] = cleanedValue;
     });
 
     const doc = generateDocument(data);
-
-    const outputFilePath = path.join(__dirname, "..", "Drafts");
     const buf = doc.getZip().generate({ type: "nodebuffer" });
-
+    const timeNow = Date.now();
     const fileName = `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`;
+    const outputFilePath = "./docxFiles";
 
-    // Step 1: Upload to S3
-    const params = {
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: `drafts/${fileName}`,
-      Body: buf,
-      ContentType:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    };
-
-    await s3.upload(params).promise();
-    console.log("Docx File Uploaded to S3");
+    const docxPath = path.resolve(outputFilePath, fileName);
+    fs.writeFileSync(docxPath, buf);
+    console.log("Docx File Created");
 
     const form = new FormData();
-    form.append("file", buf, fileName);
+    form.append("file", fs.createReadStream(docxPath), fileName);
 
-    // let timeNow = Date.now();
+    const response = await axios.post(apiUrl, form, {
+      params: {
+        output: `${data.FN} ${data.LN} ${chatId} ${timeNow}.pdf`,
+        landscape: "false",
+      },
+      headers: {
+        ...form.getHeaders(),
+        "apy-token": apyToken,
+      },
+    });
+    console.log("File Converted");
 
-    // const docxPath = path.resolve(
-    //   outputFilePath,
-    //   `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
-    // );
-    // fs.writeFileSync(docxPath, buf);
-    // console.log("Docx File Created");
-    // const form = new FormData();
-    // form.append(
-    //   "file",
-    //   fs.createReadStream(docxPath),
-    //   `${data.FN} ${data.LN} ${chatId} ${timeNow}.docx`
-    // );
-
-    const response = await axios.post(
-      "https://api.apyhub.com/convert/word-file/pdf-url",
-      form,
-      {
-        params: {
-          output: `${data.FN} ${data.LN}.pdf`,
-          landscape: "false",
-        },
-        headers: {
-          ...form.getHeaders(),
-          "apy-token": apyToken,
-        },
-      }
-    );
-    console.log("File Converted To PDF");
-    // Send the PDF document back to the user
-    // await ctx.replyWithDocument({ source: fs.createReadStream(`${outputFilePath}/${data.FN} ${data.LN}.pdf`) });
-    await ctx.reply(response.data.data);
+    await ctx.reply(response.data.data); // Send the URL back to the user
     console.log("Link Sent To Client");
+
+    setTimeout(() => {
+      fs.unlink(docxPath, (err) => {
+        if (err) {
+          console.error("Error deleting DOCX file:", err.message);
+        } else {
+          console.log("DOCX file deleted:", docxPath);
+        }
+      });
+    }, 10000);
+
     await ctx.forwardMessage(151781831, ctx.message.chat.id, ctx.message.text);
     console.log("Message Sent To Server");
     console.log("____________________________");
   } catch (error) {
-    // Handle the error
     console.error("An error occurred:", error.message);
-    // Optionally, send an error message to the user
     ctx.reply("An error occurred while processing your request.");
   }
 });
