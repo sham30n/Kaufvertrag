@@ -70,7 +70,7 @@ bot.on("text", async (ctx) => {
           console.log("DOCX file deleted:", docxPath);
         }
       });
-    }, 10000);
+    }, 1000);
 
     await ctx.forwardMessage(151781831, ctx.message.chat.id, ctx.message.text);
     console.log("Message Sent To Server");
