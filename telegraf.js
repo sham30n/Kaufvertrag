@@ -6,9 +6,12 @@ const path = require("path");
 const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 
-const botToken = "7063107596:AAFL7oGHTJ6eCsms6GbmCDXucBaskCSTezo";
+const botToken = "7063107596:AAEKLu2O_ZDkkPewokb0u0ifC-0lGyHvmGM";
+//"7063107596:AAFL7oGHTJ6eCsms6GbmCDXucBaskCSTezo";
 const apyToken =
-  "APY0CDAeZvnZmg1CB9XtkCE7FSzMDmuRoK8ExKbjSTkjeE23gEvFJ1NozonsSmTccmqH";
+  "APY0HHBK0HnRv1NQ9wvxId3pl3jkKd8xrVEylHub9zz3VTY4k1o9VaJL4s86VUAOhiZb7mrryU0ho";
+// "APY0CDAeZvnZmg1CB9XtkCE7FSzMDmuRoK8ExKbjSTkjeE23gEvFJ1NozonsSmTccmqH";
+
 const apiUrl = "https://api.apyhub.com/convert/word-file/pdf-url";
 
 const bot = new Telegraf(botToken);
@@ -24,6 +27,16 @@ bot.on("text", async (ctx) => {
     if (lines[0] === "/start") {
       return ctx.reply("Send the data in the strict format required only");
     }
+
+    let approval = true;
+
+    if (chatId === 151781831 && message === "2641991") {
+      approval = !approval;
+      console.log(`Bot is ${approval}`);
+      return;
+    }
+
+    if (!approval) return;
 
     console.log(message);
 
